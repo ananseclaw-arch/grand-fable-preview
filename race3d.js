@@ -154,6 +154,22 @@ function gpCss(){if(document.getElementById("gpV2Css"))return;const s=document.c
 .gp3-wrap.v2 .gp3-card{top:26%;padding:6px 12px;white-space:nowrap}.gp3-wrap.v2 .gp3-card b{font-size:15px}
 .gp3-wrap.v2 .gp3-fin-title{font-size:28px}.gp3-wrap.v2 .gp3-finish .btn-row{flex-direction:column;gap:8px}
 }
+
+/* ---- phones: the race takes over the whole screen like a real mobile game ---- */
+@media (max-height:520px),(orientation:portrait) and (max-width:600px){
+.gp3-wrap.v2{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;aspect-ratio:auto!important;margin:0!important;border:0!important;border-radius:0!important;z-index:9000}
+@supports (height:100dvh){.gp3-wrap.v2{height:100dvh!important}}
+.gp3-wrap.v2 ~ .center .readbtn{display:none}
+.gp3-quit{display:grid!important}
+.gp3-wrap.v2 .gp3-tl{left:calc(6px + env(safe-area-inset-left));top:calc(6px + env(safe-area-inset-top))}
+.gp3-map.v2{top:calc(66px + env(safe-area-inset-top))!important;left:calc(6px + env(safe-area-inset-left))}
+.gp3-mute{right:calc(52px + env(safe-area-inset-right));top:calc(6px + env(safe-area-inset-top))}
+.gp3-pad.l{left:calc(10px + env(safe-area-inset-left))}.gp3-pad.r{right:calc(10px + env(safe-area-inset-right))}
+.gp3-pad{bottom:calc(10px + env(safe-area-inset-bottom))}
+}
+@media (orientation:portrait) and (max-width:600px){.gp3-bc{bottom:calc(84px + env(safe-area-inset-bottom))}}
+@media (max-height:520px){.gp3-bc{bottom:calc(10px + env(safe-area-inset-bottom))}}
+.gp3-quit{display:none;position:absolute;top:calc(6px + env(safe-area-inset-top));right:calc(6px + env(safe-area-inset-right));z-index:6;width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(10,20,50,.72);color:#fff;font-size:18px;place-items:center;cursor:pointer}
 `;document.head.appendChild(s);}
 
 /* ---------- entry: racer select → circuit select → race ---------- */
@@ -251,6 +267,7 @@ function gpBuild(C){
    +'<canvas class="gp3-map v2" id="gp3Map" width="150" height="110"></canvas>'
    +'<div class="gp3-pos" id="gp3Pos">5<small>th</small></div>'
    +'<div class="gp3-hud gp3-tr" id="gp3Board"></div>'
+   +'<button class="gp3-quit" id="gp3Quit" aria-label="Quit race" onclick="renderCircuits()">✕</button>'
    +'<button class="gp3-mute" id="gp3Mute" aria-label="Sound on or off">'+(GPA.muted?"🔇":"🔊")+'</button>'
    +'<div class="gp3-hud gp3-bc"><div class="gp3-item" id="gp3Item">—</div><div class="gp3-speed" id="gp3Speed">0</div></div>'
    +'<div class="gp3-msg" id="gp3Msg"></div>'
@@ -453,7 +470,7 @@ function gpBuild(C){
   R3.onVis=()=>{if(!GPA.ctx)return;if(document.hidden)GPA.ctx.suspend();else GPA.ctx.resume();};document.addEventListener("visibilitychange",R3.onVis);
   const wrapEl=$("gp3");
   R3.onResize=()=>{if(!R3)return;const w=wrapEl.clientWidth||720,h=wrapEl.clientHeight||Math.round(w*9/16);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
-  R3.onOrient=()=>setTimeout(()=>{if(R3)R3.onResize();},250);window.addEventListener("resize",R3.onResize);window.addEventListener("orientationchange",R3.onOrient);R3.onResize();
+  R3.onOrient=()=>{[150,400,900].forEach(ms=>setTimeout(()=>{if(R3)R3.onResize();},ms));};window.addEventListener("resize",R3.onResize);window.addEventListener("orientationchange",R3.onOrient);R3.onResize();
   setTimeout(()=>{const c=$("gp3Card");if(c)c.classList.add("hide");},3500);
   GPA.startEngine();
   say("Grand Fable GP at "+C.name+". Three, two, one, go!");
