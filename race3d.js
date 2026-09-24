@@ -173,7 +173,7 @@ function gpCss(){if(document.getElementById("gpV3Css"))return;const s=document.c
 .gp3-wrap.v3 .gp3-card{padding:6px 14px}.gp3-wrap.v3 .gp3-card b{font-size:16px}
 .fz-fin-t{font-size:30px}.fz-res{font-size:12px}.gp3-wrap.v3 .gp3-finish .btn{padding:8px 12px;font-size:14px}
 }
-@media (max-height:520px){.gp3-wrap.v3{--tach:84px}.fz-skill{top:44%}.gp3-wrap.v3 .gp3-map{width:74px;top:calc(84px + env(safe-area-inset-top))}.gp3-wrap.v3 .race-btn{width:54px;height:54px}}
+@media (max-height:520px){.gp3-wrap.v3{--tach:84px}.fz-skill{top:46%}.fz-pos{font-size:30px}.gp3-wrap.v3 .gp3-map{width:70px;top:calc(96px + env(safe-area-inset-top))}.gp3-wrap.v3 .race-btn{width:54px;height:54px}}
 @media (orientation:portrait) and (max-width:600px){.fz-skill{top:32%}.gp3-wrap.v3 .gp3-finish .btn-row{flex-direction:column;gap:8px}}
 `;document.head.appendChild(s);}
 
@@ -443,9 +443,9 @@ function gpBuild(C){
   const glare=new T.Sprite(new T.SpriteMaterial({map:gpSoftDot(),color:new T.Color(L.glow),transparent:true,opacity:0.55,blending:T.AdditiveBlending,depthWrite:false,fog:false}));glare.material.userData.lin=1;glare.scale.set(260,260,1);scene.add(glare);
   // ---- cars ----
   const tyreMat=new T.MeshStandardMaterial({color:0x111113,roughness:0.92}),rimMat=new T.MeshStandardMaterial({color:0xcfd4dc,roughness:0.22,metalness:0.95}),spokeMat=new T.MeshStandardMaterial({color:0x34373f,roughness:0.35,metalness:0.8});
-  const dark=new T.MeshStandardMaterial({color:0x121419,roughness:0.55,metalness:0.2}),glass=new T.MeshStandardMaterial({color:0x0b1118,roughness:0.06,metalness:0.9,transparent:true,opacity:0.88});
+  const dark=new T.MeshStandardMaterial({color:0x121419,roughness:0.55,metalness:0.2}),glass=new T.MeshStandardMaterial({color:0x1d2a38,roughness:0.05,metalness:0.7,transparent:true,opacity:0.9});
   const chrome=new T.MeshStandardMaterial({color:0xbbbbbb,roughness:0.15,metalness:1}),lampMat=new T.MeshStandardMaterial({color:0xfff6d5,emissive:0xfff2c8,emissiveIntensity:1.2,roughness:0.2});
-  const helmetMat=new T.MeshStandardMaterial({color:0xf2f2f2,roughness:0.3,metalness:0.2}),blobTex=gpSoftDot();
+  const helmetMat=new T.MeshStandardMaterial({color:0xf2f2f2,roughness:0.3,metalness:0.2}),blobTex=gpSoftDot(),exhaustMat=new T.MeshStandardMaterial({color:0x2a2a2e,roughness:0.35,metalness:0.6,envMapIntensity:0.3});
   const mkCar=(car,paint,num)=>{const S=GP_SHAPE[car.type],pr=gpProfile(S),g=new T.Group(),b=new T.Group();g.add(b);
     const body=new T.MeshPhysicalMaterial({color:new T.Color(paint),metalness:0.5,roughness:0.32,clearcoat:1,clearcoatRoughness:0.06});
     const tail=new T.MeshStandardMaterial({color:0xff1a1a,emissive:0xff0000,emissiveIntensity:0.6,roughness:0.3});
@@ -456,7 +456,7 @@ function gpBuild(C){
     else{add(new T.BoxGeometry(S.w*0.82,0.44,0.05),glass,0,S.hood+0.2,S.cabF-0.08,-0.62);[-0.42,0.42].forEach(x=>{add(new T.TorusGeometry(0.2,0.04,6,12,Math.PI),chrome,x,S.belt+0.02,S.cabR+0.2);add(new T.BoxGeometry(0.46,0.5,0.4),dark,x,S.belt-0.05,S.cabR+0.4);});}
     const hl=pr.hl,ly=(S.ride+S.nose)/2+0.08;
     [-1,1].forEach(sd=>{add(new T.BoxGeometry(0.44,0.13,0.08),lampMat,sd*S.w*0.31,ly,hl+0.1);add(new T.BoxGeometry(0.48,0.12,0.07),tail,sd*S.w*0.32,S.tail-0.06,-hl-0.1);
-      add(new T.BoxGeometry(0.16,0.1,0.14),body,sd*(S.w/2+0.06),S.hood+0.14,S.cabF-0.12);add(new T.CylinderGeometry(0.07,0.07,0.3,10),chrome,sd*0.36,S.ride+0.12,-hl-0.05,Math.PI/2);});
+      add(new T.BoxGeometry(0.16,0.1,0.14),body,sd*(S.w/2+0.06),S.hood+0.14,S.cabF-0.12);add(new T.CylinderGeometry(0.07,0.07,0.3,10),exhaustMat,sd*0.36,S.ride+0.12,-hl-0.05,Math.PI/2);});
     add(new T.BoxGeometry(S.w*0.42,0.16,0.05),dark,0,ly-0.16,hl+0.12);
     if(S.wing==="big"){add(new T.BoxGeometry(S.w*0.98,0.06,0.46),dark,0,S.deck+0.42,-hl+0.32);[-0.55,0.55].forEach(x=>add(new T.BoxGeometry(0.06,0.42,0.2),dark,x,S.deck+0.2,-hl+0.34));[-1,1].forEach(sd=>add(new T.BoxGeometry(0.05,0.3,0.5),body,sd*S.w*0.49,S.deck+0.42,-hl+0.32));}
     if(S.wing==="duck")add(new T.BoxGeometry(S.w*0.86,0.07,0.24),dark,0,S.deck+0.08,-hl+0.22,-0.35);
