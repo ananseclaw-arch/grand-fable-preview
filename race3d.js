@@ -707,12 +707,12 @@ function gpUpdate(dt,waiting){
       if(kt.drift)kt.off=offroad?kt.off+dt:0;
       if(kt.drift&&(!driftBtn||kt.off>0.6||spd<0.3))kt.drift=0;
       if(kt.drift){const same=inp===kt.drift,opp=inp===-kt.drift;kt.x+=kt.drift*dt*kt.steer*Math.max(.35,spd)*(same?0.5:(opp?-0.35:0.18));}
-      else{const tgt=((left?-1:0)+(right?1:0))*kt.steer*(R3.mode==="free"?0.5:0.6)*Math.max(.4,spd);kt.sv=(kt.sv||0)+(tgt-(kt.sv||0))*Math.min(1,dt*(tgt?4:7));kt.x+=kt.sv*dt;}
+      else{const tgt=((left?-1:0)+(right?1:0))*kt.steer*(R3.mode==="free"?0.36:0.42)*Math.max(.4,spd);kt.sv=(kt.sv||0)+(tgt-(kt.sv||0))*Math.min(1,dt*(tgt?3:8));kt.x+=kt.sv*dt;}
     }
     else if(!kt.player){const target=Math.sin((kt.t*6.28*3)+kt.racer.n.length)*0.45-curv*6;const ahead=karts.find(o=>o!==kt&&((o.t-kt.t+1)%1)<0.012&&Math.abs(o.x-kt.x)<0.35);kt.x+=((ahead?(kt.x<ahead.x?-0.65:0.65):Math.max(-0.8,Math.min(0.8,target)))-kt.x)*dt*(1.1+kt.racer.car.handle*0.18);}
     kt.x-=curv*spd*dt*(kt.player?(R3.mode==="free"?3:6):14)*(kt.drift?0.4:1);
     if(kt.player&&R3.mode==="race"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.95)kt.x-=Math.sign(kt.x)*dt*0.7;
-    if(kt.player&&R3.mode==="free"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.55)kt.x-=Math.sign(kt.x)*dt*0.9;
+    if(kt.player&&R3.mode==="free"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.7)kt.x-=Math.sign(kt.x)*dt*0.5;
     const lim=kt.player&&R3.mode==="free"?1.15:1.5;kt.x=Math.max(-lim,Math.min(lim,kt.x));
     if(kt.hop>0)kt.hop-=dt;
     const before=kt.t;kt.t=(kt.t+kt.speed*dt/len)%1;
