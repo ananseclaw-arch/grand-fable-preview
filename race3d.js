@@ -99,7 +99,7 @@ function gpCss(){if(document.getElementById("gpV2Css"))return;const s=document.c
 .gp3-mute{position:absolute;right:10px;bottom:auto;top:clamp(140px,15vw,160px);z-index:6;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(10,20,50,.72);color:#fff;font-size:24px;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
 .gp3-pad{position:absolute;bottom:12px;display:flex;gap:clamp(8px,1.2vw,14px);z-index:5;align-items:flex-end}
 .gp3-pad.l{left:12px}.gp3-pad.r{right:12px}
-.gp3-wrap.v2 .race-btn{width:clamp(70px,8.6vw,104px);height:clamp(70px,8.6vw,104px);border-radius:50%;font-size:clamp(26px,3.3vw,40px);background:rgba(6,29,55,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);touch-action:none;display:grid;place-items:center;padding:0}
+.gp3-wrap.v2 .race-btn{width:clamp(70px,7.8vw,94px);height:clamp(70px,7.8vw,94px);border-radius:50%;font-size:clamp(26px,3.3vw,40px);background:rgba(6,29,55,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);touch-action:none;display:grid;place-items:center;padding:0}
 .gp3-wrap.v2 .race-btn.small{width:clamp(58px,6.8vw,80px);height:clamp(58px,6.8vw,80px);font-size:clamp(22px,2.6vw,30px)}
 .gp3-wrap.v2 .race-btn.drift{background:linear-gradient(135deg,rgba(77,210,255,.85),rgba(176,107,255,.85));font-size:clamp(13px,1.6vw,18px);font-weight:900;letter-spacing:.04em}
 .gp3-wrap.v2 .race-btn.on{background:#f5a623;color:#071b35}
@@ -107,6 +107,53 @@ function gpCss(){if(document.getElementById("gpV2Css"))return;const s=document.c
 .gp3-wrap.v2 .gp3-finish{z-index:8}
 .gp3-wrap.v2.done .gp3-pad,.gp3-wrap.v2.done .gp3-mute{display:none}
 @media (max-width:700px){.gp3-wrap.v2 .gp3-tr{font-size:11px;min-width:96px}.gp3-map.v2{display:none}}
+
+/* ---- phones: landscape (short screen) ---- */
+@media (orientation:landscape) and (max-height:520px){
+.gp3-wrap.v2{max-width:calc((100vh - 34px)*16/9);border-radius:10px;border-width:2px}
+@supports (height:100dvh){.gp3-wrap.v2{max-width:calc((100dvh - 34px)*16/9)}}
+.gp3-wrap.v2 .gp3-hud{padding:5px 8px;border-radius:9px}
+.gp3-wrap.v2 .gp3-tl{left:6px;top:6px}
+.gp3-wrap.v2 .gp3-lap{font-size:11px}.gp3-wrap.v2 .gp3-time{font-size:15px}
+.gp3-map.v2{top:54px;left:6px;width:78px}
+.gp3-pos{font-size:34px;top:4px}
+.gp3-wrap.v2 .gp3-tr{display:none}
+.gp3-mute{top:6px;right:6px;width:36px;height:36px;font-size:17px}
+.gp3-pad{bottom:8px;gap:8px}.gp3-pad.l{left:8px}.gp3-pad.r{right:8px}
+.gp3-wrap.v2 .race-btn{width:54px;height:54px;font-size:22px;border-width:2px}
+.gp3-wrap.v2 .race-btn.small{width:44px;height:44px;font-size:18px}
+.gp3-wrap.v2 .race-btn.drift{font-size:10px}
+.gp3-bc{bottom:8px;gap:8px}
+.gp3-wrap.v2 .gp3-item{width:40px;height:40px;font-size:20px}.gp3-wrap.v2 .gp3-item small{font-size:7px}
+.gp3-wrap.v2 .gp3-speed{font-size:13px}
+.gp3-wrap.v2 .gp3-msg{font-size:16px;top:22%}
+.gp3-wrap.v2 .gp3-count{font-size:64px}
+.gp3-wrap.v2 .gp3-card{top:30%;padding:6px 12px}.gp3-wrap.v2 .gp3-card b{font-size:15px}
+.gp3-wrap.v2 .gp3-fin-title{font-size:26px}.gp3-wrap.v2 .gp-pod span{font-size:24px}.gp3-wrap.v2 .gp3-finish .btn.big{padding:8px 12px;font-size:14px}
+}
+/* ---- phones: portrait — the race fills the screen, controls along the bottom ---- */
+@media (orientation:portrait) and (max-width:600px){
+.gp3-wrap.v2{aspect-ratio:auto;height:calc(100vh - 64px);max-width:none;border-radius:12px;border-width:2px}
+@supports (height:100dvh){.gp3-wrap.v2{height:calc(100dvh - 64px)}}
+.gp3-wrap.v2 .gp3-hud{padding:5px 8px;border-radius:9px}
+.gp3-wrap.v2 .gp3-tl{left:6px;top:6px}
+.gp3-wrap.v2 .gp3-lap{font-size:12px}.gp3-wrap.v2 .gp3-time{font-size:16px}
+.gp3-map.v2{display:block!important;top:58px;left:6px;width:84px}
+.gp3-pos{font-size:44px;top:6px}
+.gp3-wrap.v2 .gp3-tr{display:none}
+.gp3-mute{top:8px;right:6px;width:40px;height:40px;font-size:18px}
+.gp3-pad{bottom:12px;gap:8px}.gp3-pad.l{left:8px}.gp3-pad.r{right:8px}
+.gp3-wrap.v2 .race-btn{width:58px;height:58px;font-size:22px;border-width:2px}
+.gp3-wrap.v2 .race-btn.small{width:46px;height:46px;font-size:18px}
+.gp3-wrap.v2 .race-btn.drift{font-size:10px}
+.gp3-bc{bottom:82px;gap:8px}
+.gp3-wrap.v2 .gp3-item{width:44px;height:44px;font-size:22px}.gp3-wrap.v2 .gp3-item small{font-size:7px}
+.gp3-wrap.v2 .gp3-speed{font-size:14px}
+.gp3-wrap.v2 .gp3-msg{font-size:17px;top:20%}
+.gp3-wrap.v2 .gp3-count{font-size:72px}
+.gp3-wrap.v2 .gp3-card{top:26%;padding:6px 12px;white-space:nowrap}.gp3-wrap.v2 .gp3-card b{font-size:15px}
+.gp3-wrap.v2 .gp3-fin-title{font-size:28px}.gp3-wrap.v2 .gp3-finish .btn-row{flex-direction:column;gap:8px}
+}
 `;document.head.appendChild(s);}
 
 /* ---------- entry: racer select → circuit select → race ---------- */
@@ -226,7 +273,7 @@ function gpBuild(C){
   const sunDir=new T.Vector3(L.dir[0],L.dir[1],L.dir[2]).normalize();
   const hemi=new T.HemisphereLight(gpLin(L.hor),gpLin(C.grass),L.hemi);scene.add(hemi);
   const sun=new T.DirectionalLight(gpLin(L.sun),L.sunI);sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);const sc=sun.shadow.camera;sc.left=-48;sc.right=48;sc.top=48;sc.bottom=-48;sc.near=5;sc.far=400;sun.shadow.bias=-0.0005;if("normalBias" in sun.shadow)sun.shadow.normalBias=0.04;
+  const phone=Math.min(screen.width||999,screen.height||999)<600;sun.shadow.mapSize.set(phone?1024:2048,phone?1024:2048);const sc=sun.shadow.camera;sc.left=-48;sc.right=48;sc.top=48;sc.bottom=-48;sc.near=5;sc.far=400;sun.shadow.bias=-0.0005;if("normalBias" in sun.shadow)sun.shadow.normalBias=0.04;
   scene.add(sun);scene.add(sun.target);
   // sky dome: vertical gradient with a sun disc and glow
   const skyMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
@@ -535,13 +582,13 @@ function gpUpdate(dt,waiting){
 function gpRender(dt){
   const me=R3.karts.find(k=>k.player);const tan=R3.curve.getTangentAt(me.t).normalize();const nor=R3.tmpV2.set(-tan.z,0,tan.x);
   const spd=me.speed/me.max;
-  const back=7.4+(me.boost>0?1.4:0)-spd*0.5;
+  const back=(R3.camera.aspect<1?9.2:7.4)+(me.boost>0?1.4:0)-spd*0.5;
   const target=me.pos.clone().addScaledVector(tan,-back).add(new R3.T.Vector3(0,3.1,0)).addScaledVector(nor,(me.drift||0)*1.1);
   if(R3.camPos.lengthSq()===0)R3.camPos.copy(target);
   R3.camPos.lerp(target,Math.min(1,dt*5));R3.camera.position.copy(R3.camPos);
   if(R3.shake>0){R3.shake=Math.max(0,R3.shake-dt*1.8);const a=R3.shake*0.5;R3.camera.position.x+=(Math.random()-0.5)*a;R3.camera.position.y+=(Math.random()-0.5)*a;R3.camera.position.z+=(Math.random()-0.5)*a;}
   R3.camera.lookAt(me.pos.clone().addScaledVector(tan,12).add(new R3.T.Vector3(0,2.3,0)));
-  const fovT=60+Math.min(1.2,spd)*6+(me.boost>0?10:0);R3.fov+=(fovT-R3.fov)*Math.min(1,dt*4);if(Math.abs(R3.camera.fov-R3.fov)>0.05){R3.camera.fov=R3.fov;R3.camera.updateProjectionMatrix();}
+  const fovT=(R3.camera.aspect<1?80:60)+Math.min(1.2,spd)*6+(me.boost>0?10:0);R3.fov+=(fovT-R3.fov)*Math.min(1,dt*4);if(Math.abs(R3.camera.fov-R3.fov)>0.05){R3.camera.fov=R3.fov;R3.camera.updateProjectionMatrix();}
   // sky follows the camera; sun and its shadow box follow the player so shadows stay sharp
   R3.sky.position.copy(R3.camera.position);
   R3.sun.position.copy(me.pos).add(R3.sunOff);R3.sun.target.position.copy(me.pos);R3.sun.target.updateMatrixWorld();
