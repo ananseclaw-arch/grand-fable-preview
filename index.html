@@ -524,11 +524,11 @@ body.learningworld #app{max-width:1180px}
 
 /* preview-only */
 body{background:linear-gradient(180deg,#071b35,#0b2a55)!important}
-#pvbar{position:fixed;left:8px;bottom:6px;z-index:50;font:700 11px system-ui;color:#9fd0ff;opacity:.7;pointer-events:none}
+#pvbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(2px + env(safe-area-inset-top));z-index:9500;font:700 9px system-ui;color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:999px;pointer-events:none;white-space:nowrap}
 #toastpv{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#123;color:#fff;padding:8px 14px;border-radius:10px;font:700 14px system-ui;z-index:60;display:none}
 </style></head><body>
 <div id="app"></div><div id="overlay"></div><div id="anansecorner"></div><div id="toastpv"></div>
-<div id="pvbar">PREVIEW · Grand Fable GP v2 · not saved to Prince's profile</div>
+<div id="pvbar">PREVIEW · not saved</div>
 <script>
 /* PREVIEW STUBS: this page never touches the Learning Zone's saved data (no storage, no service worker). */
 var P=null;
@@ -557,6 +557,6 @@ function kdWebgl(){
 function loadThree(){return new Promise((res,rej)=>{if(window.THREE)return res();const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";const to=setTimeout(()=>rej(new Error("timeout")),15000);s.onload=()=>{clearTimeout(to);res()};s.onerror=()=>{clearTimeout(to);rej(new Error("load"))};document.head.appendChild(s);});}
 </script>
 <script src="race.js?v=2"></script>
-<script src="race3d.js?v=8"></script>
+<script src="race3d.js?v=9"></script>
 <script>document.body.classList.add("learningworld");renderRace();</script>
 </body></html>

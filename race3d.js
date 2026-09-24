@@ -600,11 +600,11 @@ function gpRender(dt){
   const me=R3.karts.find(k=>k.player);const tan=R3.curve.getTangentAt(me.t).normalize();const nor=R3.tmpV2.set(-tan.z,0,tan.x);
   const spd=me.speed/me.max;
   const back=(R3.camera.aspect<1?9.2:7.4)+(me.boost>0?1.4:0)-spd*0.5;
-  const target=me.pos.clone().addScaledVector(tan,-back).add(new R3.T.Vector3(0,3.1,0)).addScaledVector(nor,(me.drift||0)*1.1);
+  const target=me.pos.clone().addScaledVector(tan,-back).add(new R3.T.Vector3(0,R3.camera.aspect<1?4.6:3.1,0)).addScaledVector(nor,(me.drift||0)*1.1);
   if(R3.camPos.lengthSq()===0)R3.camPos.copy(target);
   R3.camPos.lerp(target,Math.min(1,dt*5));R3.camera.position.copy(R3.camPos);
   if(R3.shake>0){R3.shake=Math.max(0,R3.shake-dt*1.8);const a=R3.shake*0.5;R3.camera.position.x+=(Math.random()-0.5)*a;R3.camera.position.y+=(Math.random()-0.5)*a;R3.camera.position.z+=(Math.random()-0.5)*a;}
-  R3.camera.lookAt(me.pos.clone().addScaledVector(tan,12).add(new R3.T.Vector3(0,2.3,0)));
+  const tall=R3.camera.aspect<1;R3.camera.lookAt(me.pos.clone().addScaledVector(tan,tall?9:12).add(new R3.T.Vector3(0,tall?-1.2:2.3,0)));
   const fovT=(R3.camera.aspect<1?80:60)+Math.min(1.2,spd)*6+(me.boost>0?10:0);R3.fov+=(fovT-R3.fov)*Math.min(1,dt*4);if(Math.abs(R3.camera.fov-R3.fov)>0.05){R3.camera.fov=R3.fov;R3.camera.updateProjectionMatrix();}
   // sky follows the camera; sun and its shadow box follow the player so shadows stay sharp
   R3.sky.position.copy(R3.camera.position);
