@@ -273,7 +273,7 @@ function gpBuild(C){
   const sunDir=new T.Vector3(L.dir[0],L.dir[1],L.dir[2]).normalize();
   const hemi=new T.HemisphereLight(gpLin(L.hor),gpLin(C.grass),L.hemi);scene.add(hemi);
   const sun=new T.DirectionalLight(gpLin(L.sun),L.sunI);sun.castShadow=true;
-  const phone=Math.min(screen.width||999,screen.height||999)<600;sun.shadow.mapSize.set(phone?1024:2048,phone?1024:2048);const sc=sun.shadow.camera;sc.left=-48;sc.right=48;sc.top=48;sc.bottom=-48;sc.near=5;sc.far=400;sun.shadow.bias=-0.0005;if("normalBias" in sun.shadow)sun.shadow.normalBias=0.04;
+  const phone=Math.min(window.screen.width||999,window.screen.height||999,Math.max(innerWidth,innerHeight))<600||Math.min(innerWidth,innerHeight)<520;sun.shadow.mapSize.set(phone?1024:2048,phone?1024:2048);const sc=sun.shadow.camera;sc.left=-48;sc.right=48;sc.top=48;sc.bottom=-48;sc.near=5;sc.far=400;sun.shadow.bias=-0.0005;if("normalBias" in sun.shadow)sun.shadow.normalBias=0.04;
   scene.add(sun);scene.add(sun.target);
   // sky dome: vertical gradient with a sun disc and glow
   const skyMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
