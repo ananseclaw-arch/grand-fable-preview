@@ -48,7 +48,7 @@ const GP_CIRCUITS=[
   look:{top:"#8fb8e6",hor:"#fde3bf",glow:"#ffd49a",sun:"#ffe2b8",sunI:1.1,hemi:0.85,dir:[0.8,0.5,-0.25],paper:"#f8ecd8",ink:"#2d2632",hill:"#c3b68c",time:"Golden afternoon",night:0},
   pts:[[0,0],[90,0],[130,40],[110,95],[40,110],[-10,80],[-60,110],[-120,80],[-125,25],[-70,-10]]},
  {id:"hills",name:"Aburi Hills at Dusk",laps:2,tree:"forest",hills:5.5,grass:0x7f9a78,sea:null,
-  look:{top:"#5a5f9e",hor:"#f7b59a",glow:"#ff9f7a",sun:"#ffc2a0",sunI:0.8,hemi:0.75,dir:[-0.85,0.32,0.2],paper:"#f3e2d6",ink:"#2a2238",hill:"#8f8fb5",time:"Dusk, lanterns on",night:1},
+  look:{top:"#3b3f78",hor:"#f2a88e",glow:"#c9705a",sun:"#ffc2a0",sunI:0.85,hemi:0.62,dir:[-0.85,0.32,0.2],paper:"#efdccf",ink:"#241c30",hill:"#7a7aa6",time:"Dusk, lanterns on",night:1},
   pts:[[0,0],[60,-20],[120,10],[140,70],[100,110],[60,80],[10,120],[-60,130],[-120,90],[-110,30],[-50,-15]]}
 ];
 const GP_KMH=4.6;                       // game speed → km/h shown on the dial
@@ -435,7 +435,7 @@ function gpBuild(C){
   const skyMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
     uniforms:{top:{value:new T.Color(L.top)},hor:{value:new T.Color(L.hor)},glow:{value:new T.Color(L.glow)},sunDir:{value:sunDir}},
     vertexShader:"varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
-    fragmentShader:"uniform vec3 top;uniform vec3 hor;uniform vec3 glow;uniform vec3 sunDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.0,1.0);vec3 c=mix(hor,top,pow(h,0.5));float s=max(dot(d,sunDir),0.0);c+=glow*(smoothstep(0.9985,0.9993,s)*2.2+pow(s,60.0)*0.5+pow(s,6.0)*0.18);if(d.y<0.0)c=hor;gl_FragColor=vec4(c,1.0);}"});
+    fragmentShader:"uniform vec3 top;uniform vec3 hor;uniform vec3 glow;uniform vec3 sunDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.0,1.0);vec3 c=mix(hor,top,pow(h,0.5));float s=max(dot(d,sunDir),0.0);c+=glow*(smoothstep(0.9985,0.9993,s)*1.6+pow(s,60.0)*0.35+pow(s,6.0)*0.1);if(d.y<0.0)c=hor;gl_FragColor=vec4(c,1.0);}"});
   const sky=new T.Mesh(new T.SphereGeometry(1400,32,16),skyMat);sky.renderOrder=-1;sky.frustumCulled=false;scene.add(sky);
   // paint reflections: small painted panorama → environment map
   let envRT=null;
@@ -462,11 +462,11 @@ function gpBuild(C){
   let seaTex=null;if(C.sea){seaTex=gpCanvasTex(256,256,(x,w,h)=>{x.fillStyle=C.sea;x.fillRect(0,0,w,h);for(let i=0;i<600;i++){x.fillStyle="rgba(255,255,255,.05)";x.fillRect(Math.random()*w,Math.random()*h,3,2);}x.strokeStyle="rgba(255,255,255,.6)";x.lineWidth=2.5;x.lineCap="round";for(let i=0;i<24;i++){const px=Math.random()*w,py=Math.random()*h,l=12+Math.random()*26;x.beginPath();x.moveTo(px,py);x.quadraticCurveTo(px+l/2,py-5,px+l,py);x.stroke();}},true);seaTex.repeat.set(46,46);
     const sea=new T.Mesh(new T.PlaneGeometry(4200,4200),new T.MeshLambertMaterial({map:seaTex}));sea.rotation.x=-Math.PI/2;sea.position.set(cx,SEA,cz);sea.receiveShadow=true;scene.add(sea);}
   const ribbon=(inner,outer,mat,yIn,yOut,vScale)=>{const g=new T.BufferGeometry();const v=[],uv=[],idx=[];for(let i=0;i<=M;i++){const s=samples[i];const a=s.pos.clone().addScaledVector(s.nor,inner),b=s.pos.clone().addScaledVector(s.nor,outer);v.push(a.x,s.pos.y+yIn,a.z,b.x,s.pos.y+yOut,b.z);uv.push(0,i*vScale,1,i*vScale);if(i<M){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}g.setAttribute("position",new T.Float32BufferAttribute(v,3));g.setAttribute("uv",new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;return m;};
-  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#d9d4de";x.fillRect(0,0,w,h);x.strokeStyle="rgba(120,112,140,.35)";x.lineWidth=2;for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i*w/8,0);x.lineTo(i*w/8,h);x.stroke();x.beginPath();x.moveTo(0,i*h/8);x.lineTo(w,i*h/8);x.stroke();}x.fillStyle="#f2c14e";x.fillRect(w/2-7,0,14,h*0.42);x.fillStyle="#f7f2ea";x.fillRect(10,0,10,h);x.fillRect(w-20,0,10,h);if(0){x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#d9d4de";x.fillRect(0,0,w,h);x.strokeStyle="rgba(120,112,140,.35)";x.lineWidth=2;for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i*w/8,0);x.lineTo(i*w/8,h);x.stroke();x.beginPath();x.moveTo(0,i*h/8);x.lineTo(w,i*h/8);x.stroke();}x.fillStyle="#f2c14e";x.fillRect(w/2-7,0,14,h*0.42);x.fillStyle="#2b2735";x.fillRect(0,0,9,h);x.fillRect(w-9,0,9,h);x.fillStyle="#f7f2ea";x.fillRect(16,0,8,h);x.fillRect(w-24,0,8,h);if(0){x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
     const gr=x.createLinearGradient(0,0,w,0);[[0,0],[.25,.22],[.38,0],[.62,0],[.75,.22],[1,0]].forEach(s=>gr.addColorStop(s[0],"rgba(8,8,10,"+s[1]+")"));x.fillStyle=gr;x.fillRect(0,0,w,h);
     }},true);
   scene.add(ribbon(-W,W,new T.MeshLambertMaterial({map:roadTex}),0.03,0.03,(len/M)/(2*W)));
-  const gravTex=gpCanvasTex(128,128,(x,w,h)=>{x.fillStyle="#8d8062";x.fillRect(0,0,w,h);for(let i=0;i<900;i++){const v=90+Math.random()*80|0;x.fillStyle="rgba("+v+","+(v-8)+","+(v-25)+",.6)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}},true);
+  const gravTex=gpCanvasTex(128,128,(x,w,h)=>{x.fillStyle="#e9d9b8";x.fillRect(0,0,w,h);x.fillStyle="#d9785f";x.fillRect(0,0,14,h);x.fillRect(w-14,0,14,h);if(0){x.fillStyle="#8d8062";x.fillRect(0,0,w,h);for(let i=0;i<900;i++){const v=90+Math.random()*80|0;x.fillStyle="rgba("+v+","+(v-8)+","+(v-25)+",.6)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}}},true);
   const gravMat=new T.MeshStandardMaterial({map:gravTex,roughness:1});scene.add(ribbon(-W-3.4,-W,gravMat,-0.1,0.02,0.4));scene.add(ribbon(W,W+3.4,gravMat,0.02,-0.1,0.4));
   // ---- festival hub at the start line ----
   const s0=samples[0],sStart=s0.pos.clone();const standRanges=[[M-24,M],[0,24]];
@@ -507,7 +507,7 @@ function gpBuild(C){
     [fb,fh].forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=true;});[fb,fh,fhat].forEach(m=>{m.castShadow=true;scene.add(m);});}
   // ---- floating islands in the sky ----
   const islands=[];const rockMat=new T.MeshLambertMaterial({color:0xe2d8ea}),capMat=new T.MeshLambertMaterial({color:0x9cc27a}),iwMat=new T.MeshLambertMaterial({color:0xf7f0e1}),irMat=new T.MeshLambertMaterial({color:0xd9624a}),itMat=new T.MeshLambertMaterial({color:0x5f9a62});
-  for(let k=0;k<7;k++){const a=k/7*6.28+0.4,r=230+Math.random()*190;const g=new T.Group();const rock=new T.Mesh(new T.ConeGeometry(14+Math.random()*9,26+Math.random()*16,7),rockMat);rock.rotation.x=Math.PI;rock.position.y=-14;g.add(rock);const cap=new T.Mesh(new T.CylinderGeometry(15,14,3,9),capMat);cap.position.y=0.4;g.add(cap);
+  for(let k=0;k<7;k++){const a=k/7*6.28+0.4,r=230+Math.random()*190;const g=new T.Group();const rock=new T.Mesh(new T.DodecahedronGeometry(15,0),rockMat);rock.scale.set(1,0.9,1);rock.position.y=-11;g.add(rock);const rock2=new T.Mesh(new T.DodecahedronGeometry(8,0),rockMat);rock2.position.set(3,-23,-2);g.add(rock2);const cap=new T.Mesh(new T.CylinderGeometry(15.5,15,3.2,10),capMat);cap.position.y=1;g.add(cap);
     if(k%2===0){const hb=new T.Mesh(new T.BoxGeometry(5,4,5),iwMat);hb.position.set(2,4,1);g.add(hb);const hr=new T.Mesh(new T.ConeGeometry(4.2,3,4),irMat);hr.rotation.y=Math.PI/4;hr.position.set(2,7.5,1);g.add(hr);}
     for(let q=0;q<3;q++){const tr=new T.Mesh(new T.ConeGeometry(2.2,7,7),itMat);tr.position.set(-6+q*3.5,5,-4+q*2);g.add(tr);}
     g.position.set(cx+Math.cos(a)*r,65+Math.random()*75,cz+Math.sin(a)*r);g.scale.setScalar(0.6+Math.random()*0.7);g.userData.bob=Math.random()*6;scene.add(g);islands.push(g);}
@@ -706,6 +706,7 @@ function gpUpdate(dt,waiting){
     }
     else if(!kt.player){const target=Math.sin((kt.t*6.28*3)+kt.racer.n.length)*0.45-curv*6;const ahead=karts.find(o=>o!==kt&&((o.t-kt.t+1)%1)<0.012&&Math.abs(o.x-kt.x)<0.35);kt.x+=((ahead?(kt.x<ahead.x?-0.65:0.65):Math.max(-0.8,Math.min(0.8,target)))-kt.x)*dt*(1.1+kt.racer.car.handle*0.18);}
     kt.x-=curv*spd*dt*14*(kt.drift?0.4:1);
+    if(kt.player&&R3.mode==="free"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.55)kt.x-=Math.sign(kt.x)*dt*0.9;
     kt.x=Math.max(-1.5,Math.min(1.5,kt.x));
     if(kt.hop>0)kt.hop-=dt;
     const before=kt.t;kt.t=(kt.t+kt.speed*dt/len)%1;
