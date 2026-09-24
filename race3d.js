@@ -74,30 +74,30 @@ void main(){
   float bt=floor(t*12.0);
   vec2 wob=vec2(nz(vUv*7.0+bt*1.7),nz(vUv*7.0+bt*1.7+19.3))-0.5;
   vec2 uv=vUv+wob*2.2/res;
-  vec2 px=1.35/res;
+  vec2 px=2.1/res;
   vec3 c=texture2D(tCol,vUv).rgb;
   vec3 cl=texture2D(tCol,uv-vec2(px.x,0.0)).rgb,cr=texture2D(tCol,uv+vec2(px.x,0.0)).rgb,cu=texture2D(tCol,uv+vec2(0.0,px.y)).rgb,cd=texture2D(tCol,uv-vec2(0.0,px.y)).rgb;
-  float e=smoothstep(0.20,0.46,length(cr-cl)+length(cu-cd));
+  float e=smoothstep(0.10,0.30,length(cr-cl)+length(cu-cd));
   float sky=0.0;
   if(hasDep>0.5){
     sky=step(0.99999,rawD(vUv));
     float dc=linD(rawD(uv)),dl=linD(rawD(uv-vec2(px.x,0.0))),dr=linD(rawD(uv+vec2(px.x,0.0))),du=linD(rawD(uv+vec2(0.0,px.y))),dd=linD(rawD(uv-vec2(0.0,px.y)));
     float lap=(abs(dl+dr-2.0*dc)+abs(du+dd-2.0*dc))/max(dc,1.0);
     float jump=max(max(abs(dl-dc),abs(dr-dc)),max(abs(du-dc),abs(dd-dc)))/max(dc,1.0);
-    e=max(e,max(smoothstep(0.035,0.09,lap),smoothstep(0.06,0.16,jump)));
-    e*=1.0-smoothstep(300.0,900.0,dc)*0.85;
+    e=max(e,max(smoothstep(0.012,0.045,lap),smoothstep(0.025,0.08,jump)));
+    e*=1.0-smoothstep(260.0,800.0,dc)*0.8;
   }
   vec3 gl=vec3(0.0);
-  for(int i=0;i<8;i++){float a=float(i)*0.7854;vec2 o=vec2(cos(a),sin(a))*7.0/res;vec3 s=texture2D(tCol,vUv+o).rgb;gl+=max(s-vec3(0.78),0.0);}
-  c+=gl*(0.10+night*0.18);
-  c=mix(c,paper,0.10+sky*0.45);
+  for(int i=0;i<8;i++){float a=float(i)*0.7854;vec2 o=vec2(cos(a),sin(a))*7.0/res;vec3 s=texture2D(tCol,vUv+o).rgb;gl+=max(s-vec3(0.86),0.0);}
+  c+=gl*(0.07+night*0.22);
+  c=mix(c,paper,0.08+sky*(0.34-night*0.2));
   float bl=nz(vUv*res/190.0)*0.6+nz(vUv*res/55.0)*0.4;
-  c*=0.95+0.09*bl;
+  c*=0.93+0.12*bl;
   float gr=hsh(floor(vUv*res/1.6))*0.55+nz(vec2(vUv.x*res.x/2.5,vUv.y*res.y/9.0))*0.45;
   c*=0.935+0.075*gr;
   float lum=dot(c,vec3(0.299,0.587,0.114));
   float hat=step(0.55,fract((vUv.x*res.x+vUv.y*res.y)/6.0));
-  c=mix(c,ink,e*0.85+(1.0-smoothstep(0.16,0.34,lum))*hat*0.16*(1.0-sky));
+  c=mix(c,ink,min(1.0,e*1.05)*0.9+(1.0-smoothstep(0.16,0.34,lum))*hat*0.16*(1.0-sky));
   vec2 q=vUv*(1.0-vUv);float v=pow(clamp(q.x*q.y*18.0,0.0,1.0),0.16);
   c=mix(paper*0.84,c,v);
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
@@ -462,9 +462,9 @@ function gpBuild(C){
   let seaTex=null;if(C.sea){seaTex=gpCanvasTex(256,256,(x,w,h)=>{x.fillStyle=C.sea;x.fillRect(0,0,w,h);for(let i=0;i<600;i++){x.fillStyle="rgba(255,255,255,.05)";x.fillRect(Math.random()*w,Math.random()*h,3,2);}x.strokeStyle="rgba(255,255,255,.6)";x.lineWidth=2.5;x.lineCap="round";for(let i=0;i<24;i++){const px=Math.random()*w,py=Math.random()*h,l=12+Math.random()*26;x.beginPath();x.moveTo(px,py);x.quadraticCurveTo(px+l/2,py-5,px+l,py);x.stroke();}},true);seaTex.repeat.set(46,46);
     const sea=new T.Mesh(new T.PlaneGeometry(4200,4200),new T.MeshLambertMaterial({map:seaTex}));sea.rotation.x=-Math.PI/2;sea.position.set(cx,SEA,cz);sea.receiveShadow=true;scene.add(sea);}
   const ribbon=(inner,outer,mat,yIn,yOut,vScale)=>{const g=new T.BufferGeometry();const v=[],uv=[],idx=[];for(let i=0;i<=M;i++){const s=samples[i];const a=s.pos.clone().addScaledVector(s.nor,inner),b=s.pos.clone().addScaledVector(s.nor,outer);v.push(a.x,s.pos.y+yIn,a.z,b.x,s.pos.y+yOut,b.z);uv.push(0,i*vScale,1,i*vScale);if(i<M){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}g.setAttribute("position",new T.Float32BufferAttribute(v,3));g.setAttribute("uv",new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;return m;};
-  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#9a9aa8";x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#d9d4de";x.fillRect(0,0,w,h);x.strokeStyle="rgba(120,112,140,.35)";x.lineWidth=2;for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i*w/8,0);x.lineTo(i*w/8,h);x.stroke();x.beginPath();x.moveTo(0,i*h/8);x.lineTo(w,i*h/8);x.stroke();}x.fillStyle="#f2c14e";x.fillRect(w/2-7,0,14,h*0.42);x.fillStyle="#f7f2ea";x.fillRect(10,0,10,h);x.fillRect(w-20,0,10,h);if(0){x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
     const gr=x.createLinearGradient(0,0,w,0);[[0,0],[.25,.22],[.38,0],[.62,0],[.75,.22],[1,0]].forEach(s=>gr.addColorStop(s[0],"rgba(8,8,10,"+s[1]+")"));x.fillStyle=gr;x.fillRect(0,0,w,h);
-    x.fillStyle="#e9e9e4";x.fillRect(14,0,9,h);x.fillRect(w-23,0,9,h);x.fillRect(w/2-4,0,8,h*0.45);},true);
+    }},true);
   scene.add(ribbon(-W,W,new T.MeshLambertMaterial({map:roadTex}),0.03,0.03,(len/M)/(2*W)));
   const gravTex=gpCanvasTex(128,128,(x,w,h)=>{x.fillStyle="#8d8062";x.fillRect(0,0,w,h);for(let i=0;i<900;i++){const v=90+Math.random()*80|0;x.fillStyle="rgba("+v+","+(v-8)+","+(v-25)+",.6)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}},true);
   const gravMat=new T.MeshStandardMaterial({map:gravTex,roughness:1});scene.add(ribbon(-W-3.4,-W,gravMat,-0.1,0.02,0.4));scene.add(ribbon(W,W+3.4,gravMat,0.02,-0.1,0.4));
@@ -489,13 +489,13 @@ function gpBuild(C){
       dummy.position.set(h[0],h[1]+h[4]+h[3]*0.34,h[2]);dummy.scale.set(h[3]*1.3,h[3],h[3]*1.42);dummy.updateMatrix();hr.setMatrixAt(k,dummy.matrix);hr.setColorAt(k,gpLin(roofCols[(h[6]>>3)%roofCols.length]));});
     [hb,hr].forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;scene.add(m);});}
   // ---- street lamps (glow at dusk) ----
-  const inkCol=new T.Color(L.ink).getHex();const lamps=[];for(let i=6;i<M;i+=16){const s=samples[i];[-1,1].forEach(side=>{const p=s.pos.clone().addScaledVector(s.nor,side*(W+3.3));const q=p.clone().addScaledVector(s.nor,-side*0.8);lamps.push([p.x,groundAt(p.x,p.z),p.z,q.x,q.z]);});}
-  const lpg=new T.CylinderGeometry(0.07,0.09,5.2,6);lpg.translate(0,2.6,0);const lpIM=new T.InstancedMesh(lpg,new T.MeshLambertMaterial({color:inkCol}),lamps.length);const lhIM=new T.InstancedMesh(new T.SphereGeometry(0.28,10,8),new T.MeshBasicMaterial({color:0xfff1c9}),lamps.length);
-  lamps.forEach((l,k)=>{dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.position.set(l[0],l[1],l[2]);dummy.updateMatrix();lpIM.setMatrixAt(k,dummy.matrix);dummy.position.set(l[3],l[1]+5.15,l[4]);dummy.updateMatrix();lhIM.setMatrixAt(k,dummy.matrix);});lpIM.castShadow=true;scene.add(lpIM);scene.add(lhIM);
+  const inkCol=new T.Color(L.ink).getHex();const lamps=[];for(let i=6;i<M;i+=16){const s=samples[i];[-1,1].forEach(side=>{const p=s.pos.clone().addScaledVector(s.nor,side*(W+4.4));const q=p.clone().addScaledVector(s.nor,-side*0.85);lamps.push([p.x,groundAt(p.x,p.z),p.z,q.x,q.z]);});}
+  const poleCol=0x6f6880;const lpg=new T.CylinderGeometry(0.05,0.07,5.2,6);lpg.translate(0,2.6,0);const lpIM=new T.InstancedMesh(lpg,new T.MeshLambertMaterial({color:poleCol}),lamps.length);const armIM=new T.InstancedMesh(new T.BoxGeometry(0.06,0.06,1),new T.MeshLambertMaterial({color:poleCol}),lamps.length);const lhIM=new T.InstancedMesh(new T.SphereGeometry(L.night?0.42:0.28,10,8),new T.MeshBasicMaterial({color:0xfff1c9}),lamps.length);
+  lamps.forEach((l,k)=>{dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.position.set(l[0],l[1],l[2]);dummy.updateMatrix();lpIM.setMatrixAt(k,dummy.matrix);dummy.position.set(l[3],l[1]+5.15,l[4]);dummy.updateMatrix();lhIM.setMatrixAt(k,dummy.matrix);dummy.position.set((l[0]+l[3])/2,l[1]+5.25,(l[2]+l[4])/2);dummy.lookAt(l[3],l[1]+5.25,l[4]);dummy.scale.set(1,1,0.85);dummy.updateMatrix();armIM.setMatrixAt(k,dummy.matrix);dummy.scale.set(1,1,1);dummy.rotation.set(0,0,0);});lpIM.castShadow=true;scene.add(lpIM);scene.add(armIM);scene.add(lhIM);
   // ---- lantern strings across the road ----
   const lanCols=[0xe8604c,0xf2c14e,0x7cc6b6,0x6b8fd6,0xc98bb9];const lanPts=[];
-  [0.13,0.38,0.63,0.86].forEach(f=>{const s=samples[Math.floor(M*f)];const a=s.pos.clone().addScaledVector(s.nor,W+2.6),b=s.pos.clone().addScaledVector(s.nor,-(W+2.6));const ya=groundAt(a.x,a.z),yb=groundAt(b.x,b.z);
-    [[a,ya],[b,yb]].forEach(([q,y])=>{const pl=new T.Mesh(lpg,new T.MeshLambertMaterial({color:inkCol}));pl.position.set(q.x,y,q.z);pl.scale.set(1,1.3,1);pl.castShadow=true;scene.add(pl);});
+  [0.13,0.38,0.63,0.86].forEach(f=>{const s=samples[Math.floor(M*f)];const a=s.pos.clone().addScaledVector(s.nor,W+4.4),b=s.pos.clone().addScaledVector(s.nor,-(W+4.4));const ya=groundAt(a.x,a.z),yb=groundAt(b.x,b.z);
+    [[a,ya],[b,yb]].forEach(([q,y])=>{const pl=new T.Mesh(lpg,new T.MeshLambertMaterial({color:0x6f6880}));pl.position.set(q.x,y,q.z);pl.scale.set(1,1.3,1);pl.castShadow=true;scene.add(pl);});
     const line=[];for(let k=0;k<=14;k++){const u=k/14;const x=a.x+(b.x-a.x)*u,z=a.z+(b.z-a.z)*u,y=ya+(yb-ya)*u+6.6-Math.sin(Math.PI*u)*1.5;line.push(new T.Vector3(x,y,z));if(k>0&&k<14)lanPts.push([x,y-0.25,z,k]);}
     scene.add(new T.Line(new T.BufferGeometry().setFromPoints(line),new T.LineBasicMaterial({color:inkCol})));});
   const lanIM=new T.InstancedMesh(new T.SphereGeometry(0.3,10,8),new T.MeshBasicMaterial({color:0xffffff}),lanPts.length);lanPts.forEach((q,k)=>{dummy.position.set(q[0],q[1],q[2]);dummy.updateMatrix();lanIM.setMatrixAt(k,dummy.matrix);lanIM.setColorAt(k,gpLin(lanCols[q[3]%lanCols.length]));});if(lanIM.instanceColor)lanIM.instanceColor.needsUpdate=true;scene.add(lanIM);
@@ -506,7 +506,7 @@ function gpBuild(C){
     folk.forEach((f,k)=>{dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.position.set(f[0],f[1]+0.5,f[2]);dummy.updateMatrix();fb.setMatrixAt(k,dummy.matrix);fb.setColorAt(k,gpLin(shirts[k%shirts.length]));dummy.position.y=f[1]+1.2;dummy.updateMatrix();fh.setMatrixAt(k,dummy.matrix);fh.setColorAt(k,gpLin(skins[k%skins.length]));dummy.position.y=f[1]+1.36;dummy.updateMatrix();fhat.setMatrixAt(k,dummy.matrix);});
     [fb,fh].forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=true;});[fb,fh,fhat].forEach(m=>{m.castShadow=true;scene.add(m);});}
   // ---- floating islands in the sky ----
-  const islands=[];const rockMat=new T.MeshLambertMaterial({color:0xb7aec4}),capMat=new T.MeshLambertMaterial({color:0x9cc27a}),iwMat=new T.MeshLambertMaterial({color:0xf7f0e1}),irMat=new T.MeshLambertMaterial({color:0xd9624a}),itMat=new T.MeshLambertMaterial({color:0x5f9a62});
+  const islands=[];const rockMat=new T.MeshLambertMaterial({color:0xe2d8ea}),capMat=new T.MeshLambertMaterial({color:0x9cc27a}),iwMat=new T.MeshLambertMaterial({color:0xf7f0e1}),irMat=new T.MeshLambertMaterial({color:0xd9624a}),itMat=new T.MeshLambertMaterial({color:0x5f9a62});
   for(let k=0;k<7;k++){const a=k/7*6.28+0.4,r=230+Math.random()*190;const g=new T.Group();const rock=new T.Mesh(new T.ConeGeometry(14+Math.random()*9,26+Math.random()*16,7),rockMat);rock.rotation.x=Math.PI;rock.position.y=-14;g.add(rock);const cap=new T.Mesh(new T.CylinderGeometry(15,14,3,9),capMat);cap.position.y=0.4;g.add(cap);
     if(k%2===0){const hb=new T.Mesh(new T.BoxGeometry(5,4,5),iwMat);hb.position.set(2,4,1);g.add(hb);const hr=new T.Mesh(new T.ConeGeometry(4.2,3,4),irMat);hr.rotation.y=Math.PI/4;hr.position.set(2,7.5,1);g.add(hr);}
     for(let q=0;q<3;q++){const tr=new T.Mesh(new T.ConeGeometry(2.2,7,7),itMat);tr.position.set(-6+q*3.5,5,-4+q*2);g.add(tr);}
