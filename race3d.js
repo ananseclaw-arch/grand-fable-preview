@@ -319,12 +319,16 @@ function gpPickCar(id){if(P){P.gpCar=id;save();}else window._gpCar=id;document.q
 function gpPickPaint(h){if(P){P.gpPaint=h;save();}else window._gpPaint=h;document.querySelectorAll(".fz-sw").forEach(b=>b.classList.toggle("on",b.dataset.paint===h));gpDrawPreviews();sfx("tick");}
 function gpPickRacer(id){gpPickCar(GP_CARS.some(c=>c.id===id)?id:"kei");}
 function gpMode(){return (P&&P.gpMode)||window._gpMode||"free";}
+function gpPace(){return (P&&P.gpPace)||window._gpPace||"gentle";}
+function gpPickPace(v){if(P){P.gpPace=v;save();}else window._gpPace=v;document.querySelectorAll(".fz-pace button").forEach(b=>b.classList.toggle("on",b.dataset.p===v));sfx("tick");}
+function gpPaceMul(){const g=gpPace()==="gentle";return gpMode()==="free"?(g?0.55:0.72):(g?0.68:0.85);}
 function gpPickMode(m){if(P){P.gpMode=m;save();}else window._gpMode=m;document.querySelectorAll(".fz-mode button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));sfx("tick");}
 function renderCircuits(){
   clearTimers();closeOverlay();showAnanseCorner(false);gpStop();gpCss();
   const best=P&&P.race?P.race:{};
   app.innerHTML='<div class="fadein fz-shell" style="max-width:980px;margin:0 auto;padding:0 8px">'
    +'<div style="text-align:center;padding:16px 8px 12px"><div class="fz-title">Grand Fable GP</div><div class="fz-sub">'+esc(gpCar().n)+' · choose a route</div></div>'
+   +'<div class="fz-mode fz-pace"><button data-p="gentle" class="'+(gpPace()==="gentle"?"on":"")+'" onclick="gpPickPace(\'gentle\')">🐢 Gentle speed</button><button data-p="normal" class="'+(gpPace()==="normal"?"on":"")+'" onclick="gpPickPace(\'normal\')">🚗 Normal speed</button></div>'
    +'<div class="fz-mode"><button data-m="free" class="'+(gpMode()==="free"?"on":"")+'" onclick="gpPickMode(\'free\')">🎵 Free drive: collect the music</button><button data-m="race" class="'+(gpMode()==="race"?"on":"")+'" onclick="gpPickMode(\'race\')">🏁 Race: beat 4 rivals</button></div>'
    +'<div class="fz-cars">'+GP_CIRCUITS.map((c,i)=>'<button class="fz-route" onclick="startRace3D(\''+c.id+'\')"><canvas id="gpMini'+i+'" width="220" height="150"></canvas><b>'+esc(c.name)+'</b><small>'+esc(c.look.time)+' · '+c.laps+' laps'+(best[c.id]&&best[c.id].time?' · best '+gpFmt(best[c.id].time)+' · '+gpOrd(best[c.id].place):'')+(best[c.id]&&best[c.id].skill?' · skill '+gpNum(best[c.id].skill):'')+(best[c.id]&&best[c.id].notes?' · 🎵 '+best[c.id].notes+' notes':'')+'</small></button>').join("")+'</div>'
    +'<div class="card fz-card" style="margin-top:14px"><b>How to play</b><p style="margin-top:6px">🎵 <b>Free drive</b>: cruise the coast and drive through the floating music notes. Every 8 notes makes a tune, and at the end you can play your whole song.<br>🏁 <b>Race</b>: beat 4 rivals. Score skill points for drifting, near misses and passing.<br>◀ ▶ steer · BRAKE slows down · hold DRIFT while turning to slide. The car speeds up on its own. Keyboard: ← → steer, ↓ brake, Space drift, M mute, Esc quit.</p></div>'
@@ -606,7 +610,7 @@ function gpBuild(C){
   const others=GP_CARS.filter(c=>c.id!==myCar.id);
   const pname=(P&&typeof P.name==="string"&&P.name.trim())?P.name.trim().split(/\s+/)[0]:"You";
   const racers=[{n:pname,car:myCar,css:myPaint,player:true}].concat(gpMode()==="race"?others.slice(0,4).map((c,i)=>({n:GP_DRIVERS[i%GP_DRIVERS.length],car:c,css:c.paint,player:false})):[]);
-  const karts=racers.map((r,i)=>{const m=mkCar(r.car,r.css,i+2);const st=gpStats(r.car);
+  const pace=gpPaceMul();const karts=racers.map((r,i)=>{const m=mkCar(r.car,r.css,i+2);const st=gpStats(r.car);st.max*=pace;st.accel*=0.75;
     return{racer:r,player:r.player,...m,...st,t:0,x:0,px:0,speed:0,lap:0,spin:0,drift:0,off:0,hop:0,roll:0,pitch:0,steerVis:0,yaw:null,lastSpeed:0,skidD:0,ahead:true,started:false,pos:new T.Vector3(),draft:false,brakeOn:false};});
   let gi=0;karts.forEach(k=>{if(k.player){k.t=(M-6)/M;k.x=0;}else{k.t=((M-2-gi*3)/M)%1;k.x=gi%2?0.5:-0.5;gi++;}k.px=k.x;});
   // ---- music notes to collect (free drive) ----
@@ -703,17 +707,18 @@ function gpUpdate(dt,waiting){
       if(kt.drift)kt.off=offroad?kt.off+dt:0;
       if(kt.drift&&(!driftBtn||kt.off>0.6||spd<0.3))kt.drift=0;
       if(kt.drift){const same=inp===kt.drift,opp=inp===-kt.drift;kt.x+=kt.drift*dt*kt.steer*Math.max(.35,spd)*(same?0.5:(opp?-0.35:0.18));}
-      else{if(left)kt.x-=dt*kt.steer*0.9*Math.max(.35,spd);if(right)kt.x+=dt*kt.steer*0.9*Math.max(.35,spd);}
+      else{const tgt=((left?-1:0)+(right?1:0))*kt.steer*(R3.mode==="free"?0.5:0.6)*Math.max(.4,spd);kt.sv=(kt.sv||0)+(tgt-(kt.sv||0))*Math.min(1,dt*(tgt?4:7));kt.x+=kt.sv*dt;}
     }
     else if(!kt.player){const target=Math.sin((kt.t*6.28*3)+kt.racer.n.length)*0.45-curv*6;const ahead=karts.find(o=>o!==kt&&((o.t-kt.t+1)%1)<0.012&&Math.abs(o.x-kt.x)<0.35);kt.x+=((ahead?(kt.x<ahead.x?-0.65:0.65):Math.max(-0.8,Math.min(0.8,target)))-kt.x)*dt*(1.1+kt.racer.car.handle*0.18);}
-    kt.x-=curv*spd*dt*14*(kt.drift?0.4:1);
+    kt.x-=curv*spd*dt*(kt.player?(R3.mode==="free"?3:6):14)*(kt.drift?0.4:1);
+    if(kt.player&&R3.mode==="race"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.95)kt.x-=Math.sign(kt.x)*dt*0.7;
     if(kt.player&&R3.mode==="free"&&!kt.drift&&!left&&!right&&Math.abs(kt.x)>0.55)kt.x-=Math.sign(kt.x)*dt*0.9;
-    kt.x=Math.max(-1.5,Math.min(1.5,kt.x));
+    const lim=kt.player&&R3.mode==="free"?1.15:1.5;kt.x=Math.max(-lim,Math.min(lim,kt.x));
     if(kt.hop>0)kt.hop-=dt;
     const before=kt.t;kt.t=(kt.t+kt.speed*dt/len)%1;
     if(!waiting&&kt.t<before&&before>0.5&&!kt.started){kt.started=true;}
     else if(!waiting&&kt.t<before&&before>0.5){kt.lap++;if(kt.player){if(kt.lap>=R3.C.laps&&!R3.done)gpFinish();else{R3.notes.forEach(n=>{n.alive=true;n.mesh.visible=true;});GPA.play("lap");gpMsg(kt.lap+1===R3.C.laps?"Final lap":"Lap "+(kt.lap+1));const old=R3.lapScreen.material.map;R3.lapScreen.material.map=gpTextTex("LAP "+(kt.lap+1),["#f7f0e1","#f7f0e1"],"#e8604c",512,300,120);if(old)old.dispose();}}}
-    if(kt.player&&!waiting&&!R3.done&&R3.mode==="race"){const tt=R3.trapT;const crossed=before<=kt.t?(before<tt&&kt.t>=tt):(before<tt||kt.t>=tt);if(crossed){const kmh=Math.round(kt.speed*GP_KMH);R3.trapBest=Math.max(R3.trapBest,kmh);const stars=kmh>=215?"★★★":kmh>=190?"★★":"★";gpMsg("Speed trap "+kmh+" km/h "+stars);GPA.play("trap");gpSkill("Speed trap",kmh*3,true);}}
+    if(kt.player&&!waiting&&!R3.done&&R3.mode==="race"){const tt=R3.trapT;const crossed=before<=kt.t?(before<tt&&kt.t>=tt):(before<tt||kt.t>=tt);if(crossed){const kmh=Math.round(kt.speed*GP_KMH);R3.trapBest=Math.max(R3.trapBest,kmh);const r=kt.speed/(kt.max||1);const stars=r>=0.97?"★★★":r>=0.9?"★★":"★";gpMsg("Speed trap "+kmh+" km/h "+stars);GPA.play("trap");gpSkill("Speed trap",kmh*3,true);}}
     // place the car
     const pos=R3.curve.getPointAt(kt.t),tan=R3.curve.getTangentAt(kt.t).normalize(),nor=new T.Vector3(-tan.z,0,tan.x).normalize();
     pos.addScaledVector(nor,kt.x*(R3.W-1.2));kt.pos.copy(pos);
@@ -721,7 +726,7 @@ function gpUpdate(dt,waiting){
     kt.g.lookAt(pos.clone().add(tan));
     const yaw=Math.atan2(tan.x,tan.z);let yawRate=0;if(kt.yaw!==null){let d=yaw-kt.yaw;if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;yawRate=d/Math.max(dt,0.001);}kt.yaw=yaw;
     const vx=(kt.x-kt.px)/Math.max(dt,0.001);
-    kt.g.rotateY((-vx*0.08)+(kt.drift?-kt.drift*0.42:0));
+    kt.g.rotateY((-vx*0.05)+(kt.drift?-kt.drift*0.35:0));
     const rollT=Math.max(-0.09,Math.min(0.09,yawRate*0.18*spd-vx*0.04+(kt.drift?-kt.drift*0.05:0)));kt.roll+=(rollT-kt.roll)*Math.min(1,dt*6);
     const acc=(kt.speed-kt.lastSpeed)/Math.max(dt,0.001);kt.lastSpeed=kt.speed;const pitchT=Math.max(-0.045,Math.min(0.045,-acc*0.003));kt.pitch+=(pitchT-kt.pitch)*Math.min(1,dt*6);
     kt.body.rotation.z=kt.roll;kt.body.rotation.x=kt.pitch;
@@ -776,11 +781,11 @@ function gpRender(dt){
   else{const back=(tall?8.6:6.8)-spd*0.4;target=me.pos.clone().addScaledVector(flat,-back).add(new T.Vector3(0,tall?3.9:2.35,0)).addScaledVector(nor,(me.drift||0)*0.9);
     target.y=Math.max(target.y,me.pos.y+(tall?3.4:1.9));
     look=me.pos.clone().addScaledVector(tan,tall?9:11).add(new T.Vector3(0,tall?-0.6:1.4,0));
-    R3.camPos.lerp(target,Math.min(1,dt*6));}
+    R3.camPos.lerp(target,Math.min(1,dt*3.5));}
   R3.camera.position.copy(R3.camPos);
-  const sh=R3.shake+(spd>0.85?0.04:0);if(sh>0){R3.shake=Math.max(0,R3.shake-dt*1.6);const a=sh*0.35;R3.camera.position.x+=(Math.random()-0.5)*a;R3.camera.position.y+=(Math.random()-0.5)*a;}
+  const sh=R3.shake;if(sh>0){R3.shake=Math.max(0,R3.shake-dt*1.6);const a=sh*0.35;R3.camera.position.x+=(Math.random()-0.5)*a;R3.camera.position.y+=(Math.random()-0.5)*a;}
   R3.camera.lookAt(look);
-  const fovT=(tall?78:58)+Math.min(1.1,spd)*8+(me.draft?3:0);R3.fov+=(fovT-R3.fov)*Math.min(1,dt*3);if(Math.abs(R3.camera.fov-R3.fov)>0.05){R3.camera.fov=R3.fov;R3.camera.updateProjectionMatrix();}
+  const fovT=(tall?78:58)+Math.min(1.1,spd)*3+(me.draft?1.5:0);R3.fov+=(fovT-R3.fov)*Math.min(1,dt*3);if(Math.abs(R3.camera.fov-R3.fov)>0.05){R3.camera.fov=R3.fov;R3.camera.updateProjectionMatrix();}
   R3.sky.position.copy(R3.camera.position);R3.glare.position.copy(R3.camera.position).addScaledVector(R3.sunDir,1100);
   R3.sun.position.copy(me.pos).add(R3.sunOff);R3.sun.target.position.copy(me.pos);R3.sun.target.updateMatrixWorld();
   const pp=R3.post;if(pp){pp.mat.uniforms.t.value=performance.now()/1000;R3.renderer.setRenderTarget(pp.rt);R3.renderer.render(R3.scene,R3.camera);R3.renderer.setRenderTarget(null);R3.renderer.render(pp.scene,pp.cam);}else R3.renderer.render(R3.scene,R3.camera);
