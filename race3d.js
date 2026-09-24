@@ -232,7 +232,7 @@ function gpBuild(C){
   const skyMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
     uniforms:{top:{value:new T.Color(L.top)},hor:{value:new T.Color(L.hor)},glow:{value:new T.Color(L.glow)},sunDir:{value:sunDir}},
     vertexShader:"varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
-    fragmentShader:"uniform vec3 top;uniform vec3 hor;uniform vec3 glow;uniform vec3 sunDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.0,1.0);vec3 c=mix(hor,top,pow(h,0.5));float s=max(dot(d,sunDir),0.0);c+=glow*(pow(s,900.0)*1.6+pow(s,40.0)*0.35+pow(s,6.0)*0.15);if(d.y<0.0)c=hor;gl_FragColor=vec4(c,1.0);}"});
+    fragmentShader:"uniform vec3 top;uniform vec3 hor;uniform vec3 glow;uniform vec3 sunDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.0,1.0);vec3 c=mix(hor,top,pow(h,0.5));float s=max(dot(d,sunDir),0.0);c+=glow*(smoothstep(0.9985,0.9993,s)*2.2+pow(s,60.0)*0.5+pow(s,6.0)*0.18);if(d.y<0.0)c=hor;gl_FragColor=vec4(c,1.0);}"});
   const sky=new T.Mesh(new T.SphereGeometry(1200,32,16),skyMat);sky.renderOrder=-1;sky.frustumCulled=false;scene.add(sky);
   // sky reflections on the paint (environment map made from the sky)
   // sky reflections on the paint: a small painted panorama (sky over grass) turned into an environment map
@@ -286,7 +286,7 @@ function gpBuild(C){
   spec.count=si;spec.instanceMatrix.needsUpdate=true;if(spec.instanceColor)spec.instanceColor.needsUpdate=true;spec.castShadow=true;scene.add(spec);
   // cones
   const coneGeo=new T.ConeGeometry(0.5,1.3,10),coneMat=new T.MeshStandardMaterial({color:0xff7f11,roughness:0.5});const cones=[];
-  for(let i=10;i<M;i+=14){const s=samples[i];const side=(i/14)%2?1:-1;const p=s.pos.clone().addScaledVector(s.nor,side*(W+2.2));cones.push(p);}
+  for(let i=10;i<M;i+=14){const s=samples[i];const side=(i/14)%2?1:-1;const p=s.pos.clone().addScaledVector(s.nor,side*(W+2.9));cones.push(p);}
   const coneIM=new T.InstancedMesh(coneGeo,coneMat,cones.length);cones.forEach((p,i)=>{dummy.position.set(p.x,0.65,p.z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();coneIM.setMatrixAt(i,dummy.matrix);});coneIM.castShadow=true;scene.add(coneIM);
   // tyre stacks on the outside of every bend
   const tyres=[];for(let i=0;i<M;i+=5){const a=samples[i],b=samples[(i+6)%M];const turn=b.tan.clone().sub(a.tan);if(turn.length()<0.03)continue;const side=turn.dot(a.nor)>0?-1:1;if(standRanges.some(([p,q])=>i>=p-4&&i<=q+4))continue;
@@ -496,7 +496,7 @@ function gpUpdate(dt,waiting){
     // effects: drift sparks, boost flames, grass dust (world positions of the rear wheels / exhausts)
     const near=kt.player||kt.pos.distanceToSquared(me.pos)<3600;
     if(near&&(kt.drift||kt.boost>0||(offroad&&spd>0.2))){kt.g.updateMatrixWorld(true);
-      if(kt.drift){const c=kt.charge>=2.6?[0.9,0.3,1]:kt.charge>=1.7?[1,0.5,0.1]:kt.charge>=1?[0.3,0.65,1]:[0.9,0.9,0.6];[-1,1].forEach(sd=>{V.set(sd*1.05,0.1,-1.45);kt.g.localToWorld(V);for(let q=0;q<(kt.charge>=1?3:1);q++)R3.sparks.emit(V.x,V.y+0.1,V.z,(Math.random()-0.5)*3-tan.x*4,1.5+Math.random()*3,(Math.random()-0.5)*3-tan.z*4,c[0],c[1],c[2],0.35+Math.random()*0.2);});}
+      if(kt.drift){const c=kt.charge>=2.6?[0.55,0.1,1]:kt.charge>=1.7?[1,0.38,0.02]:kt.charge>=1?[0.1,0.45,1]:[0.5,0.5,0.4];[-1,1].forEach(sd=>{V.set(sd*1.05,0.1,-1.45);kt.g.localToWorld(V);for(let q=0;q<(kt.charge>=1?3:1);q++)R3.sparks.emit(V.x,V.y+0.1,V.z,(Math.random()-0.5)*3-tan.x*4,1.5+Math.random()*3,(Math.random()-0.5)*3-tan.z*4,c[0],c[1],c[2],0.35+Math.random()*0.2);});}
       if(kt.boost>0){[-0.35,0.35].forEach(sd=>{V.set(sd,0.55,-2.45);kt.g.localToWorld(V);for(let q=0;q<2;q++)R3.flames.emit(V.x,V.y,V.z,-tan.x*9+(Math.random()-0.5)*1.5,0.5+Math.random(),-tan.z*9+(Math.random()-0.5)*1.5,1,0.45+Math.random()*0.3,0.1,0.22);});}
       if(offroad&&spd>0.2&&Math.random()<0.8){const sd=Math.random()<0.5?-1:1;V.set(sd*1.05,0.2,-1.4);kt.g.localToWorld(V);R3.dust.emit(V.x,V.y,V.z,-tan.x*3+(Math.random()-0.5)*2,1+Math.random()*1.5,-tan.z*3+(Math.random()-0.5)*2,0.62,0.52,0.36,0.7);}}
     // items
