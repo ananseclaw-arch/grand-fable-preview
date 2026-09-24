@@ -235,9 +235,12 @@ function gpBuild(C){
     fragmentShader:"uniform vec3 top;uniform vec3 hor;uniform vec3 glow;uniform vec3 sunDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.0,1.0);vec3 c=mix(hor,top,pow(h,0.5));float s=max(dot(d,sunDir),0.0);c+=glow*(pow(s,900.0)*1.6+pow(s,40.0)*0.35+pow(s,6.0)*0.15);if(d.y<0.0)c=hor;gl_FragColor=vec4(c,1.0);}"});
   const sky=new T.Mesh(new T.SphereGeometry(1200,32,16),skyMat);sky.renderOrder=-1;sky.frustumCulled=false;scene.add(sky);
   // sky reflections on the paint (environment map made from the sky)
-  let envRT=null;try{const pm=new T.PMREMGenerator(renderer);const es=new T.Scene();const s2=new T.Mesh(new T.SphereGeometry(100,32,16),skyMat);es.add(s2);
-    const gnd=new T.Mesh(new T.PlaneGeometry(400,400),new T.MeshBasicMaterial({color:gpLin(C.grass)}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-2;es.add(gnd);
-    envRT=pm.fromScene(es,0.03);scene.environment=envRT.texture;pm.dispose();gnd.geometry.dispose();gnd.material.dispose();s2.geometry.dispose();}catch(e){envRT=null;}
+  // sky reflections on the paint: a small painted panorama (sky over grass) turned into an environment map
+  let envRT=null;try{const pm=new T.PMREMGenerator(renderer);
+    const eq=gpCanvasTex(256,128,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,L.top);g.addColorStop(0.47,L.hor);g.addColorStop(0.5,L.hor);g.addColorStop(0.53,"#"+C.grass.toString(16).padStart(6,"0"));g.addColorStop(1,"#2a3a22");x.fillStyle=g;x.fillRect(0,0,w,h);
+      const sx=((Math.atan2(sunDir.x,-sunDir.z)/(Math.PI*2))+0.5)*w,sy=(0.5-Math.asin(sunDir.y)/Math.PI)*h;const sg=x.createRadialGradient(sx,sy,0,sx,sy,22);sg.addColorStop(0,"rgba(255,255,240,1)");sg.addColorStop(1,"rgba(255,255,240,0)");x.fillStyle=sg;x.fillRect(0,0,w,h);});
+    eq.mapping=T.EquirectangularReflectionMapping;envRT=pm.fromEquirectangular(eq);pm.dispose();eq.dispose();
+    const tex=envRT&&envRT.texture;if(tex)scene.environment=tex;}catch(e){envRT=null;}
   // ground with mowing stripes
   const gh="#"+C.grass.toString(16).padStart(6,"0");
   const grassTex=gpCanvasTex(256,256,(x,w,h)=>{x.fillStyle=gh;x.fillRect(0,0,w,h);x.fillStyle="rgba(255,255,255,.07)";x.fillRect(0,0,w,h/2);for(let i=0;i<1400;i++){x.fillStyle=Math.random()<0.5?"rgba(0,0,0,.07)":"rgba(255,255,160,.06)";x.fillRect(Math.random()*w,Math.random()*h,2,3);}},true);grassTex.repeat.set(70,70);
@@ -408,7 +411,10 @@ function gpBuild(C){
   GPA.startEngine();
   say("Grand Fable GP at "+C.name+". Three, two, one, go!");
   R3.raf=requestAnimationFrame(gpFrame);
+  setTimeout(gpEnvCheck,1200);
 }
+/* safety net: if the reflection map ever blacks out the scene on some device, switch it off */
+function gpEnvCheck(){try{if(!R3||!R3.scene.environment)return;R3.renderer.render(R3.scene,R3.camera);const c=R3.renderer.domElement,o=document.createElement("canvas");o.width=64;o.height=36;const x=o.getContext("2d");x.drawImage(c,0,0,64,36);const d=x.getImageData(0,27,64,9).data;let sum=0;for(let i=0;i<d.length;i+=4)sum+=d[i]+d[i+1]+d[i+2];if(sum/(d.length/4)<25){R3.scene.environment=null;window.__gp.envOff=true;}}catch(e){}}
 let R3s_screen=null;const R3_balloons=[];
 function gpToggleMute(){GPA.init();GPA.setMute(!GPA.muted);if(P){P.gpMute=GPA.muted;save();}const b=$("gp3Mute");if(b)b.textContent=GPA.muted?"🔇":"🔊";}
 function gpMsg(m){if(!R3)return;const e=$("gp3Msg");if(e){e.textContent=m;e.classList.add("show");}R3.msgT=1.6;}
