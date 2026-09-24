@@ -48,7 +48,7 @@ const GP_CIRCUITS=[
   look:{top:"#8fb8e6",hor:"#fde3bf",glow:"#ffd49a",sun:"#ffe2b8",sunI:1.1,hemi:0.85,dir:[0.8,0.5,-0.25],paper:"#f8ecd8",ink:"#2d2632",hill:"#c3b68c",time:"Golden afternoon",night:0},
   pts:[[0,0],[90,0],[130,40],[110,95],[40,110],[-10,80],[-60,110],[-120,80],[-125,25],[-70,-10]]},
  {id:"hills",name:"Aburi Hills at Dusk",laps:2,tree:"forest",hills:5.5,grass:0x7f9a78,sea:null,
-  look:{top:"#3b3f78",hor:"#f2a88e",glow:"#c9705a",sun:"#ffc2a0",sunI:0.85,hemi:0.62,dir:[-0.85,0.32,0.2],paper:"#efdccf",ink:"#241c30",hill:"#7a7aa6",time:"Dusk, lanterns on",night:1},
+  look:{top:"#3b3f78",hor:"#f2a88e",glow:"#c9705a",sun:"#ffc2a0",sunI:0.8,hemi:0.46,dir:[-0.85,0.32,0.2],paper:"#e8d3c6",ink:"#241c30",hill:"#7a7aa6",time:"Dusk, lanterns on",night:1},
   pts:[[0,0],[60,-20],[120,10],[140,70],[100,110],[60,80],[10,120],[-60,130],[-120,90],[-110,30],[-50,-15]]}
 ];
 const GP_KMH=4.6;                       // game speed → km/h shown on the dial
@@ -98,6 +98,7 @@ void main(){
   float lum=dot(c,vec3(0.299,0.587,0.114));
   float hat=step(0.55,fract((vUv.x*res.x+vUv.y*res.y)/6.0));
   c=mix(c,ink,min(1.0,e*1.05)*0.9+(1.0-smoothstep(0.16,0.34,lum))*hat*0.16*(1.0-sky));
+  c*=1.0-night*0.12*(1.0-sky);
   vec2 q=vUv*(1.0-vUv);float v=pow(clamp(q.x*q.y*18.0,0.0,1.0),0.16);
   c=mix(paper*0.84,c,v);
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
@@ -462,7 +463,7 @@ function gpBuild(C){
   let seaTex=null;if(C.sea){seaTex=gpCanvasTex(256,256,(x,w,h)=>{x.fillStyle=C.sea;x.fillRect(0,0,w,h);for(let i=0;i<600;i++){x.fillStyle="rgba(255,255,255,.05)";x.fillRect(Math.random()*w,Math.random()*h,3,2);}x.strokeStyle="rgba(255,255,255,.6)";x.lineWidth=2.5;x.lineCap="round";for(let i=0;i<24;i++){const px=Math.random()*w,py=Math.random()*h,l=12+Math.random()*26;x.beginPath();x.moveTo(px,py);x.quadraticCurveTo(px+l/2,py-5,px+l,py);x.stroke();}},true);seaTex.repeat.set(46,46);
     const sea=new T.Mesh(new T.PlaneGeometry(4200,4200),new T.MeshLambertMaterial({map:seaTex}));sea.rotation.x=-Math.PI/2;sea.position.set(cx,SEA,cz);sea.receiveShadow=true;scene.add(sea);}
   const ribbon=(inner,outer,mat,yIn,yOut,vScale)=>{const g=new T.BufferGeometry();const v=[],uv=[],idx=[];for(let i=0;i<=M;i++){const s=samples[i];const a=s.pos.clone().addScaledVector(s.nor,inner),b=s.pos.clone().addScaledVector(s.nor,outer);v.push(a.x,s.pos.y+yIn,a.z,b.x,s.pos.y+yOut,b.z);uv.push(0,i*vScale,1,i*vScale);if(i<M){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}g.setAttribute("position",new T.Float32BufferAttribute(v,3));g.setAttribute("uv",new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;return m;};
-  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#d9d4de";x.fillRect(0,0,w,h);x.strokeStyle="rgba(120,112,140,.35)";x.lineWidth=2;for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i*w/8,0);x.lineTo(i*w/8,h);x.stroke();x.beginPath();x.moveTo(0,i*h/8);x.lineTo(w,i*h/8);x.stroke();}x.fillStyle="#f2c14e";x.fillRect(w/2-7,0,14,h*0.42);x.fillStyle="#2b2735";x.fillRect(0,0,9,h);x.fillRect(w-9,0,9,h);x.fillStyle="#f7f2ea";x.fillRect(16,0,8,h);x.fillRect(w-24,0,8,h);if(0){x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  const roadTex=gpCanvasTex(512,512,(x,w,h)=>{x.fillStyle="#e6ddd0";x.fillRect(0,0,w,h);for(let i=0;i<40;i++){x.fillStyle=Math.random()<0.5?"rgba(160,140,120,.07)":"rgba(255,255,255,.1)";x.beginPath();x.arc(Math.random()*w,Math.random()*h,20+Math.random()*50,0,7);x.fill();}x.strokeStyle="rgba(120,104,96,.12)";x.lineWidth=2;for(let i=1;i<4;i++){x.beginPath();x.moveTo(0,i*h/4);x.lineTo(w,i*h/4);x.stroke();}x.fillStyle="#f2b92e";x.fillRect(w/2-12,h*0.08,24,h*0.46);x.strokeStyle="#2b2735";x.lineWidth=3;x.strokeRect(w/2-12,h*0.08,24,h*0.46);x.fillStyle="#2b2735";x.fillRect(0,0,9,h);x.fillRect(w-9,0,9,h);x.fillStyle="#f7f2ea";x.fillRect(16,0,8,h);x.fillRect(w-24,0,8,h);if(0){x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=40+Math.random()*55|0;x.fillStyle="rgba("+v+","+v+","+(v+4)+",.55)";x.fillRect(Math.random()*w,Math.random()*h,2,2);}
     const gr=x.createLinearGradient(0,0,w,0);[[0,0],[.25,.22],[.38,0],[.62,0],[.75,.22],[1,0]].forEach(s=>gr.addColorStop(s[0],"rgba(8,8,10,"+s[1]+")"));x.fillStyle=gr;x.fillRect(0,0,w,h);
     }},true);
   scene.add(ribbon(-W,W,new T.MeshLambertMaterial({map:roadTex}),0.03,0.03,(len/M)/(2*W)));
